@@ -16,7 +16,12 @@ def _split_env(name):
     raw = os.environ.get(name, '')
     return [v.strip() for v in raw.split(',') if v.strip()]
 
-ALLOWED_HOSTS = _split_env('ALLOWED_HOSTS') or (['*'] if DEBUG else [])
+# Allow all hosts by default unless explicitly set via env.
+# Many platforms (e.g., Railway/Render) hit health checks on dynamic domains
+# which would otherwise trigger DisallowedHost (400) if empty in production.
+ALLOWED_HOSTS = _split_env('ALLOWED_HOSTS')
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
 
 # Applications
 INSTALLED_APPS = [

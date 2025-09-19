@@ -1,0 +1,251 @@
+/* Cybersecurity Virus Scanner Background CSS */
+
+:root {
+    --primary: #00ff88;
+    --secondary: #ff0066;
+    --tertiary: #0066ff;
+    --accent: #ffaa00;
+    --dark: #0a0a0a;
+    --darker: #050505;
+    
+    --glow-primary: 0 0 30px var(--primary);
+    --glow-secondary: 0 0 30px var(--secondary);
+    --glow-intense: 0 0 60px var(--primary), 0 0 100px var(--primary);
+    
+    --font-main: 'Orbitron', monospace;
+    --font-sub: 'Rajdhani', sans-serif;
+}
+
+/* Override existing body background and add cybersecurity effects */
+body {
+    background: 
+        radial-gradient(circle at 20% 80%, #001a00 0%, #050505 50%),
+        radial-gradient(circle at 80% 20%, #1a0000 0%, #050505 50%),
+        #050505 !important;
+    position: relative;
+}
+
+body::before {
+    background: none !important;
+}
+
+/* Enhanced Virus Scanner Background */
+.bg-virus-scan {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.scan-beam {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, transparent, var(--primary), #ffffff, var(--primary), transparent);
+    box-shadow: 
+        0 0 30px var(--primary),
+        0 0 60px var(--primary),
+        0 4px 0 rgba(255,255,255,0.9);
+    animation: virusScan 3s ease-in-out infinite;
+    z-index: 5;
+}
+
+.scan-beam::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(90deg, transparent, rgba(0,255,136,0.3), transparent);
+    animation: scanGlow 3s ease-in-out infinite;
+}
+
+.virus-code {
+    position: absolute;
+    color: var(--primary);
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0.9;
+    animation: codeScroll 6s linear infinite;
+    text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.matrix-char {
+    position: absolute;
+    color: var(--primary);
+    font-family: var(--font-main);
+    font-size: 18px;
+    font-weight: bold;
+    opacity: 0.8;
+    animation: matrixFall 4s linear infinite;
+    text-shadow: 0 0 15px var(--primary), 0 0 30px var(--primary);
+    z-index: 10;
+}
+
+.threat-detected {
+    position: absolute;
+    color: #ff0040;
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: bold;
+    animation: threatBlink 0.5s ease-in-out infinite alternate;
+    text-shadow: 0 0 15px #ff0040;
+    white-space: nowrap;
+}
+
+.system-status {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: var(--primary);
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 1;
+    line-height: 1.5;
+    z-index: 1000;
+    text-shadow: 0 0 15px var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border: 1px solid var(--primary);
+    border-radius: 5px;
+}
+
+.progress-bar {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 8px;
+    border: 2px solid var(--primary);
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    box-shadow: 0 0 20px var(--primary);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    animation: progressScan 4s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--primary);
+}
+
+.scan-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(0,255,136,0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.3) 1px, transparent 1px);
+    background-size: 25px 25px;
+    animation: gridPulse 2s ease-in-out infinite alternate;
+    z-index: 1;
+}
+
+.scan-lines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        transparent 50%,
+        rgba(0, 255, 136, 0.15) 51%,
+        rgba(0, 255, 136, 0.15) 53%,
+        transparent 54%
+    );
+    background-size: 100% 3px;
+    animation: scanlines 0.08s linear infinite;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+/* Animations */
+@keyframes virusScan {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+@keyframes scanGlow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes codeScroll {
+    0% { transform: translateY(120vh); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(-20vh); opacity: 0; }
+}
+
+@keyframes matrixFall {
+    0% { transform: translateY(-20vh); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(120vh); opacity: 0; }
+}
+
+@keyframes threatBlink {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes progressScan {
+    0% { width: 0%; }
+    50% { width: 75%; }
+    100% { width: 100%; }
+}
+
+@keyframes gridPulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+}
+
+@keyframes scanlines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .system-status {
+        font-size: 10px;
+    }
+    
+    .progress-bar {
+        width: 250px;
+    }
+    
+    .virus-code {
+        font-size: 10px;
+    }
+    
+    .threat-detected {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .system-status {
+        font-size: 9px;
+        top: 10px;
+        left: 10px;
+    }
+    
+    .progress-bar {
+        width: 200px;
+        bottom: 30px;
+    }
+}

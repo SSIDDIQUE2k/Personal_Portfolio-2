@@ -1,0 +1,844 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load i18n admin_urls %}
+
+{% block title %}{% trans 'Portfolio Admin Dashboard' %}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- DataTables -->
+<link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+body.admin-dashboard {
+  background: #f8f9fa;
+}
+
+.fixed-nav {
+  padding-top: 56px;
+}
+
+.navbar-dark.bg-dark {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+}
+
+.content-wrapper {
+  min-height: calc(100vh - 56px);
+  padding-top: 1rem;
+  margin-left: 0;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.dashboard-card.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.dashboard-card.success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.dashboard-card.warning {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.dashboard-card.danger {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  color: #333;
+}
+
+.card-icon {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 4rem;
+  opacity: 0.2;
+  transform: rotate(15deg);
+}
+
+.card-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.card-content p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f1f3f4;
+}
+
+.chart-header i {
+  color: var(--primary);
+  margin-right: 10px;
+}
+
+.recent-activity {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-right: 1rem;
+  font-weight: 600;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-content strong {
+  color: #374151;
+}
+
+.activity-time {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.data-table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  border-top: none;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.btn-outline-primary {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  color: var(--primary);
+}
+
+.breadcrumb-item a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.quick-action-btn {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  text-decoration: none;
+  color: #374151;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.quick-action-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.quick-action-btn i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.metric-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.metric-content h4 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  color: #374151;
+}
+
+.metric-content p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.activity-timeline {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f3f4;
+  position: relative;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  bottom: -1px;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.timeline-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  color: white;
+  font-size: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+.timeline-content h6 {
+  margin: 0 0 0.25rem 0;
+  color: #374151;
+  font-weight: 600;
+}
+
+.timeline-content p {
+  margin: 0 0 0.25rem 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.timeline-time {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.skills-breakdown {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.skill-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.skill-category:last-child {
+  border-bottom: none;
+}
+
+.skill-category-name {
+  font-weight: 600;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.skill-category-count {
+  background: #8b5cf6;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<body class="admin-dashboard fixed-nav">
+
+<!-- Main Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <a class="navbar-brand" href="{% url 'admin:index' %}">Portfolio Admin</a>
+  
+  <div class="collapse navbar-collapse">
+    <!-- Quick Actions in Header -->
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+          <i class="fas fa-bell"></i>
+          <span class="badge bg-warning">3</span>
+        </a>
+        <div class="dropdown-menu">
+          <h6 class="dropdown-header">Recent Updates</h6>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">
+            <strong>New Contact Message</strong>
+            <div class="small text-muted">2 minutes ago</div>
+          </a>
+          <a class="dropdown-item" href="#">
+            <strong>Profile Updated</strong>
+            <div class="small text-muted">1 hour ago</div>
+          </a>
+        </div>
+      </li>
+      
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+          <i class="fas fa-user"></i> {{ user.first_name|default:user.username }}
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="{% url 'admin:password_change' %}">
+            <i class="fas fa-key"></i> Change Password
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{% url 'admin:logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="content-wrapper">
+  <div class="container-fluid">
+    
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'admin:index' %}"><i class="fas fa-home"></i> Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active">Overview</li>
+      </ol>
+    </nav>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="{% url 'admin:api_profile_changelist' %}" class="quick-action-btn">
+        <i class="fas fa-user-edit"></i>
+        <div>Edit Profile</div>
+      </a>
+      <a href="{% url 'admin:api_project_add' %}" class="quick-action-btn">
+        <i class="fas fa-plus-circle"></i>
+        <div>Add Project</div>
+      </a>
+      <a href="{% url 'admin:api_skill_changelist' %}" class="quick-action-btn">
+        <i class="fas fa-cogs"></i>
+        <div>Manage Skills</div>
+      </a>
+      <a href="{% url 'admin:api_message_changelist' %}" class="quick-action-btn">
+        <i class="fas fa-envelope"></i>
+        <div>View Messages</div>
+      </a>
+    </div>
+
+    <!-- Dashboard Cards -->
+    <div class="dashboard-cards">
+      <div class="dashboard-card primary">
+        <div class="card-icon">
+          <i class="fas fa-project-diagram"></i>
+        </div>
+        <div class="card-content">
+          <h3>{{ project_count|default:"0" }}</h3>
+          <p>Total Projects</p>
+          <small class="text-white-50">{{ featured_projects_count|default:"0" }} featured</small>
+        </div>
+      </div>
+      
+      <div class="dashboard-card success">
+        <div class="card-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="card-content">
+          <h3>{{ skill_count|default:"0" }}</h3>
+          <p>Skills Listed</p>
+          <small class="text-white-50">{{ top_skills|length }} top skills</small>
+        </div>
+      </div>
+      
+      <div class="dashboard-card warning">
+        <div class="card-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="card-content">
+          <h3>{{ message_count|default:"0" }}</h3>
+          <p>Total Messages</p>
+          <small class="text-white-50">{{ unread_messages_count|default:"0" }} unread</small>
+        </div>
+      </div>
+      
+      <div class="dashboard-card danger">
+        <div class="card-icon">
+          <i class="fas fa-briefcase"></i>
+        </div>
+        <div class="card-content">
+          <h3>{{ experience_count|default:"0" }}</h3>
+          <p>Work Experience</p>
+          <small class="text-white-50">{{ recent_projects_count|default:"0" }} recent</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Metrics Row -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="metric-card">
+          <div class="metric-icon bg-primary">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="metric-content">
+            <h4>{{ recent_messages_count|default:"0" }}</h4>
+            <p>Messages (7 days)</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="metric-card">
+          <div class="metric-icon bg-success">
+            <i class="fas fa-plus-circle"></i>
+          </div>
+          <div class="metric-content">
+            <h4>{{ recent_projects_count|default:"0" }}</h4>
+            <p>Projects (7 days)</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="metric-card">
+          <div class="metric-icon bg-info">
+            <i class="fas fa-tags"></i>
+          </div>
+          <div class="metric-content">
+            <h4>{{ skills_by_category|length }}</h4>
+            <p>Skill Categories</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="metric-card">
+          <div class="metric-icon bg-warning">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="metric-content">
+            <h4>{{ activity_timeline|length }}</h4>
+            <p>Recent Activities</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+      <div class="col-lg-8">
+        <!-- Area Chart -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <i class="fas fa-chart-area"></i>
+            <h5>Portfolio Activity (Last 6 Months)</h5>
+          </div>
+          <canvas id="performanceChart" width="100%" height="40"></canvas>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <!-- Skills Breakdown -->
+        <div class="skills-breakdown">
+          <div class="chart-header">
+            <i class="fas fa-tags"></i>
+            <h5>Skills by Category</h5>
+          </div>
+          
+          {% for category in skills_by_category %}
+          <div class="skill-category">
+            <span class="skill-category-name">{{ category.category }}</span>
+            <span class="skill-category-count">{{ category.count }}</span>
+          </div>
+          {% empty %}
+          <p class="text-muted">No skills data available</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Timeline Row -->
+    <div class="row">
+      <div class="col-lg-8">
+        <!-- Activity Timeline -->
+        <div class="activity-timeline">
+          <div class="chart-header">
+            <i class="fas fa-history"></i>
+            <h5>Recent Activity Timeline</h5>
+          </div>
+          
+          {% for activity in activity_timeline %}
+          <div class="timeline-item">
+            <div class="timeline-icon bg-{{ activity.color }}">
+              <i class="{{ activity.icon }}"></i>
+            </div>
+            <div class="timeline-content">
+              <h6>{{ activity.title }}</h6>
+              <p>{{ activity.description }}</p>
+              <div class="timeline-time">{{ activity.time|timesince }} ago</div>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted">No recent activity</p>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <!-- Top Skills -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <i class="fas fa-star"></i>
+            <h5>Top Skills</h5>
+          </div>
+          
+          {% for skill in top_skills %}
+          <div class="skill-item mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-level">{{ skill.level }}%</span>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-gradient" style="width: {{ skill.level }}%"></div>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted">No skills data available</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="data-table-container">
+      <div class="chart-header">
+        <i class="fas fa-table"></i>
+        <h5>Recent Content</h5>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-hover" id="contentTable">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge bg-primary">Project</span></td>
+              <td>Portfolio Website</td>
+              <td><span class="badge bg-success">Published</span></td>
+              <td>2024-01-15</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary">Edit</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-info">Skill</span></td>
+              <td>Python Development</td>
+              <td><span class="badge bg-success">Active</span></td>
+              <td>2024-01-10</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary">Edit</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-warning">Message</span></td>
+              <td>Contact Inquiry</td>
+              <td><span class="badge bg-warning">Pending</span></td>
+              <td>2024-01-20</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary">View</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Performance Chart with real data
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Projects',
+        data: {{ chart_projects|safe }},
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y'
+      }, {
+        label: 'Messages',
+        data: {{ chart_messages|safe }},
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y1'
+      }]
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: 'white',
+          bodyColor: 'white',
+          borderColor: '#8b5cf6',
+          borderWidth: 1
+        }
+      },
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          beginAtZero: true,
+          grid: {
+            color: '#f1f3f4'
+          },
+          title: {
+            display: true,
+            text: 'Projects'
+          }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          beginAtZero: true,
+          grid: {
+            drawOnChartArea: false,
+          },
+          title: {
+            display: true,
+            text: 'Messages'
+          }
+        },
+        x: {
+          grid: {
+            color: '#f1f3f4'
+          }
+        }
+      }
+    }
+  });
+
+  // Initialize DataTable with enhanced features
+  $('#contentTable').DataTable({
+    pageLength: 10,
+    responsive: true,
+    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+    language: {
+      search: "Search content:",
+      lengthMenu: "Show _MENU_ entries",
+      info: "Showing _START_ to _END_ of _TOTAL_ entries",
+      paginate: {
+        first: "First",
+        last: "Last",
+        next: "Next",
+        previous: "Previous"
+      }
+    },
+    order: [[3, 'desc']], // Sort by created date descending
+    columnDefs: [
+      { targets: [4], orderable: false } // Disable sorting on actions column
+    ]
+  });
+
+  // Add smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+
+  // Add loading states for buttons
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.type === 'submit') {
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        this.disabled = true;
+      }
+    });
+  });
+
+  // Auto-refresh dashboard data every 5 minutes
+  setInterval(function() {
+    // Only refresh if user is on dashboard
+    if (window.location.pathname === '/admin/') {
+      location.reload();
+    }
+  }, 300000); // 5 minutes
+
+  // Add tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+});
+</script>
+
+</body>
+{% endblock %}

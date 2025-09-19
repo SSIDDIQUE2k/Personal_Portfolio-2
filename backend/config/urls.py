@@ -11,6 +11,7 @@ urlpatterns = [
     path('', home_view, name='home'),
 ]
 
-# Serve media files during development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files (user uploads)
+# In small deployments (e.g., Railway), it's acceptable to let Django serve media.
+# For larger scale, move media to an external storage (S3) or a CDN.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
